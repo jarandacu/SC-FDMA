@@ -1,4 +1,4 @@
-function y=demodulation2(x,modulation)
+function [y yb]=demodulation2(x,modulation)
 if modulation=='QPSK'
     n=2; %Orden de la modulación
     r=real(x);
@@ -7,6 +7,7 @@ if modulation=='QPSK'
     i=i>0;
     r=r*2-1;
     i=i*2-1;
+    yb=[r ;i];
     y=(r+j*i)/sqrt(n);    
 end
 end
