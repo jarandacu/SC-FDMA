@@ -9,7 +9,7 @@ Q=Nsub/FFTsize; % bandwith spreading factor.
 db=10^4; % number of data blocks.
 CP=20; % length of cyclic prefix.
 mod='QPSK'; % modulation.
-Submap='Interleaved'; % subcarrier mapping mode.
+Submap='Interleaved'; % subcarrier z|mapping mode.
 alpha=0.35; % roll-off factor.
 SNRdb=[0:30];
 SNR=10.^(SNRdb/10); %Rango SNR lineal.
@@ -58,6 +58,9 @@ end
 simBer=(mean(nsErr,2)/FFTsize)';
 bitBer=(mean(nbErr,2)/FFTsize)';
 figure()
-semilogy(SNRdb,simBer,'mx-');
-figure()
-semilogy(SNRdb,bitBer,'mx-');
+semilogy(SNRdb,simBer,'kx-');
+hold on
+semilogy(SNRdb,bitBer,'rx-');
+legend('SER','BER')
+xlabel('SNR [db]')
+
