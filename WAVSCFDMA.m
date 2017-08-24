@@ -1,8 +1,10 @@
 function [SNRdb bitBer]=DCTSCFDMA(Modulation,Wavelet)
 %% DFT-SC-FDMA
 %% Parameters
+%Modulation='QPSK';
+%Wavelet='coif1';
 W=5e6; %Bandwith
-FFTsize=128; %input data block size.
+FFTsize=256; %input data block size.
 Nsub=512; % total number of subcarriers.
 Q=Nsub/FFTsize; % bandwith spreading factor.
 db=10^4; % number of data blocks.
@@ -18,11 +20,13 @@ for kk=1:1:db
 %% Source & Modulation
 [x xb]=modulation2(FFTsize,mod);
 %% M-point DFT
-[x_fft,b]=dwt(x,Wavelet);
+%Wavelet='bior1.1';
+[x_fft,b1]=dwt(x,Wavelet);
+%length(x_fft)+length(b1)
 %% Subcarrier mapping
-x_sb=submap(x_fft,Submap,Nsub);
+x_sb=submap([x_fft; b1],Submap,Nsub);
 %% N-point IDFT
-x_ifft=idwt(x_sb,Wavelet);
+x_ifft=idwt(x_sb(1:length(x_sb)/2),x_sb(length(x_sb)/2+1:end),Wavelet);
 %% CP
 x_cp=[x_ifft(length(x_ifft)-CP+1:end) x_ifft];
 
@@ -45,11 +49,11 @@ y_cp=r(length(r)+1-Nsub:end);
 % FDE
 % IDFT
 %% Remove IDCT
-y_fft=dwt(y_cp,Wavelet);
+[y_fft b2]=dwt(y_cp,Wavelet);
 %% Remove Subcarrier mapping
-y_sb=y_fft(1:Q:end);
+y_sb=[y_fft(1:Q:end) b2(1:Q:end)];
 %% Remove DFT
-y_ifft=idwt(y_sb,Wavelet);
+y_ifft=idwt(y_sb(1:length(y_sb)/2),y_sb(length(y_sb)/2+1:end),Wavelet);
 %% Demodulation
 [y yb]=demodulation2(y_ifft,mod);
 %% Count the errors

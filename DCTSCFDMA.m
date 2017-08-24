@@ -2,7 +2,7 @@ function [SNRdb bitBer]=DCTSCFDMA(Modulation)
 %% DFT-SC-FDMA
 %% Parameters
 W=5e6; %Bandwith
-FFTsize=128; %input data block size.
+FFTsize=256; %input data block size.
 Nsub=512; % total number of subcarriers.
 Q=Nsub/FFTsize; % bandwith spreading factor.
 db=10^4; % number of data blocks.
