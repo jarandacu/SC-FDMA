@@ -1,9 +1,9 @@
 clear all;
 clc;
-[a1,b1]=DFTSCFDMA('QPSK');
-[a2,b2]=DCTSCFDMA('QPSK');
-[a3,b3]=WAVSCFDMA('QPSK','haar');
-[a4,b4]=WAVSCFDMA('QPSK','bior1.1');
+[a1,b1]=DFTSCFDMA('16QAM');
+[a2,b2]=DCTSCFDMA('16QAM');
+[a3,b3]=WAVSCFDMA('16QAM','haar');
+[a4,b4]=WAVSCFDMA('16QAM','bior1.1');
 h=figure();
 ylabel('BER')
 xlabel('SNR [db]')
