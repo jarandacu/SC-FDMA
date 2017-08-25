@@ -1,4 +1,4 @@
-function [SNRdb bitBer]=DCTSCFDMA(Modulation)
+function [SNRdb bitBer]=DCTSCFDMA(Modulation,CH)
 %% DFT-SC-FDMA
 %% Parameters
 W=5e6; %Bandwith
@@ -9,9 +9,23 @@ db=10^4; % number of data blocks.
 CP=20; % length of cyclic prefix.
 mod=Modulation; % modulation.
 Submap='Interleaved'; % subcarrier z|mapping mode.
+ch=CH;
+equalizer='ZERO';
 alpha=0.35; % roll-off factor.
 SNRdb=[0:30];
 SNR=10.^(SNRdb/10); %Rango SNR lineal.
+%% Canal
+%Channels based on 3GPP TS 25.104.
+if ch=='pedA'
+    pedAchannel=[1 10^(-9.7/20) 10^(-22.8/20)];
+    channel=pedAchannel/sqrt(sum(pedAchannel.^2));
+elseif ch=='vehA'
+    vehAchannel=[1 0 10^(-1/20) 0 10^(-9/20) 10^(-10/20) 0 0 0 10^(-15/20) 0 0 0 10^(-20/20)];
+    channel=vehAchannel/sqrt(sum(vehAchannel.^2));
+elseif ch=='AWGN'
+    channel=1;
+end
+Hchannel = fft(channel,Nsub);
 %% TRANSMITER
 for ii=1:1:length(SNR)
 for kk=1:1:db
@@ -27,6 +41,8 @@ x_ifft=idct(x_sb);
 x_cp=[x_ifft(length(x_ifft)-CP+1:end) x_ifft];
 
 %% CHANNEL
+x_ch=filter(channel, 1,x_cp);  
+
 w=(1./sqrt(2*SNR(ii)))'; % Energ�a ruido.
 d=(randn(1,Nsub+CP)+j*randn(1,Nsub+CP));
 n=(w*d);
@@ -35,23 +51,34 @@ tmpn = randn(2,Nsub+CP);
 complexNoise = (tmpn(1,:) + i*tmpn(2,:))/sqrt(2);
 noisePower = 10^(-SNRdb(ii)/10);
 
-r=x_cp+sqrt(noisePower/Q)*complexNoise;
+%r=x_cp+sqrt(noisePower/Q)*complexNoise;
+r=x_ch+sqrt(noisePower/Q)*complexNoise;
 %% RECEIVER
 
 %% Remove-CP
 y_cp=r(length(r)+1-Nsub:end);
 %% FDESNRdb,bitBer,SNRdb,bitBer,
-% DFT
-% FDE
-% IDFT
+%DFT
+y_fft=fft(y_cp);
+%FDE
+Heff=Hchannel;
+%Perform channel equalization in the frequency domain.
+if equalizer=='ZERO'
+    y_fde=y_fft./Heff;
+elseif equalizer == 'MMSE'
+    C=conj(Heff)./(conj(Heff).*Heff+10^(-SNRdb(ii)/10));
+    y_fde=y_fft.*C;
+end
+%IFFT
+y_ifft=ifft(y_fde);
 %% Remove IDCT
-y_fft=dct(y_cp);
+y_dct=dct(y_ifft);
 %% Remove Subcarrier mapping
-y_sb=y_fft(1:Q:end);
+y_sb=y_dct(1:Q:end);
 %% Remove DFT
-y_ifft=idct(y_sb);
+y_idct=idct(y_sb);
 %% Demodulation
-[y yb]=demodulation2(y_ifft,mod);
+[y yb]=demodulation2(y_idct,mod);
 %% Count the errors
 nsErr(ii,kk) = size(find([y.'-x]),1);
 nbErr(ii,kk) = size(find([reshape(yb,1,[])-reshape(xb',1,[])]),2);

@@ -1,16 +1,14 @@
-clear all
-clc
+function [X aux]=DFTPAPR(mod,Alpha)
 %% PAPR-DFT-SC-FDMA
 %% Parameters
 W=5e6; %Bandwith
-FFTsize=128; %input data block size.
+FFTsize=256; %input data block size.
 Nsub=512; % total number of subcarriers.
 Q=Nsub/FFTsize; % bandwith spreading factor.
-db=10^4; % number of data blocks.
+db=10^7; % number of data blocks.
 CP=20; % length of cyclic prefix.
-mod='QPSK'; % modulation.
 Submap='Interleaved'; % subcarrier z|mapping mode.
-alpha=0.25; % roll-off factor.
+alpha=Alpha; % roll-off factor.
 SNRdb=[0:30];
 SNR=10.^(SNRdb/10); %Rango SNR lineal.
 numsim=10000;
@@ -38,6 +36,8 @@ x_filter = filter(psFilter, 1, x_oversampled);
 papr(i) = 10*log10(max(abs(x_filter).^2)/mean(abs(x_filter).^2));
 end
 [N,X] = hist(papr,1000);
-semilogy(X,1-cumsum(N)/max(cumsum(N)),'b-')
-xlabel('PAPR(dB)');
-ylabel('CCDF');
+aux=1-cumsum(N)/max(cumsum(N));
+%semilogy(X,1-cumsum(N)/max(cumsum(N)),'b-')
+%xlabel('PAPR(dB)');
+%ylabel('CCDF');
+end
