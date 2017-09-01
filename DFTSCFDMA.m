@@ -1,4 +1,4 @@
-function [SNRdb bitBer]=DFTSCFDMA(Modulation,CH)
+function [SNRdb bitBer]=DFTSCFDMA(Modulation,CH,eq,Alpha)
 %% DFT-SC-FDMA
 %% Parameters
 W=5e6; %Bandwith
@@ -8,13 +8,13 @@ Q=Nsub/FFTsize; % bandwith spreading factor.
 db=10^4; % number of data blocks.
 CP=20; % length of cyclic prefix.
 mod=Modulation; % modulation.
-Submap='Interleaved'; % subcarrier z|mapping mode.
-ch=CH;
-equalizer='ZERO';
-alpha=0.35; % roll-off factor.
-SNRdb=[0:30];
-SNR=10.^(SNRdb/10); %Rango SNR lineal.
-%% Canal
+Submap='Interleaved'; % subcarrier mapping mode.
+ch=CH; % channel.
+equalizer=eq; % equalizer.
+alpha=Alpha; % roll-off factor.
+SNRdb=[0:30]; % range of SNR.
+SNR=10.^(SNRdb/10); %range of linear SNR.
+%% Channel
 %Channels based on 3GPP TS 25.104.
 if ch=='pedA'
     pedAchannel=[1 10^(-9.7/20) 10^(-22.8/20)];
@@ -39,27 +39,25 @@ x_sb=submap(x_fft,Submap,Nsub);
 x_ifft=ifft(x_sb);
 %% CP
 x_cp=[x_ifft(length(x_ifft)-CP+1:end) x_ifft];
-
-%% CHANNELSNRdb,bitBer
-x_ch=filter(channel, 1,x_cp);  
+%% CHANNEL
+x_ch=filter(channel, 1,x_cp);
 
 w=(1./sqrt(2*SNR(ii)))'; % Energ�a ruido.
 d=(randn(1,Nsub+CP)+j*randn(1,Nsub+CP));
 n=(w*d);
+%Revisar la energía del ruido.
 tmpn = randn(2,Nsub+CP);
 complexNoise = (tmpn(1,:) + i*tmpn(2,:))/sqrt(2);
 noisePower = 10^(-SNRdb(ii)/10);
-%r=x_cp+sqrt(noisePower/Q)*complexNoise;
 
 r=x_ch+sqrt(noisePower/Q)*complexNoise;
 %% RECEIVER
-
 %% Remove-CP
 y_cp=r(length(r)+1-Nsub:end);
 %% Remove IFFT
-y_fft=fft(y_cp);
+y_fft=fft(y_cp);y_sb=y_fft(1:Q:end);
 %% Remove Subcarrier mapping
-y_sb=y_fft(1:Q:end);
+y_sb=desubmap(y_fft,Submap,FFTsize);
 %% FDE
 %Find the channel response for the interleaved subcarriers.
 Heff=Hchannel(1:Q:end);

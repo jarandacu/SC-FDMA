@@ -1,4 +1,4 @@
-function [SNRdb bitBer]=DCTSCFDMA(Modulation,CH)
+function [SNRdb bitBer]=DCTSCFDMA(Modulation,CH,eq,Alpha)
 %% DFT-SC-FDMA
 %% Parameters
 W=5e6; %Bandwith
@@ -8,13 +8,13 @@ Q=Nsub/FFTsize; % bandwith spreading factor.
 db=10^4; % number of data blocks.
 CP=20; % length of cyclic prefix.
 mod=Modulation; % modulation.
-Submap='Interleaved'; % subcarrier z|mapping mode.
-ch=CH;
-equalizer='ZERO';
-alpha=0.35; % roll-off factor.
-SNRdb=[0:30];
-SNR=10.^(SNRdb/10); %Rango SNR lineal.
-%% Canal
+Submap='Interleaved'; % subcarrier mapping mode.
+ch=CH; % channel.
+equalizer=eq; % equalizer.
+alpha=Alpha; % roll-off factor.
+SNRdb=[0:30]; % range of SNR.
+SNR=10.^(SNRdb/10); %range of linear SNR.
+%% Channel
 %Channels based on 3GPP TS 25.104.
 if ch=='pedA'
     pedAchannel=[1 10^(-9.7/20) 10^(-22.8/20)];
@@ -51,18 +51,16 @@ tmpn = randn(2,Nsub+CP);
 complexNoise = (tmpn(1,:) + i*tmpn(2,:))/sqrt(2);
 noisePower = 10^(-SNRdb(ii)/10);
 
-%r=x_cp+sqrt(noisePower/Q)*complexNoise;
 r=x_ch+sqrt(noisePower/Q)*complexNoise;
 %% RECEIVER
-
 %% Remove-CP
 y_cp=r(length(r)+1-Nsub:end);
-%% FDESNRdb,bitBer,SNRdb,bitBer,
+%% FDE
 %DFT
 y_fft=fft(y_cp);
 %FDE
 Heff=Hchannel;
-%Perform channel equalization in the frequency domain.
+ %Perform channel equalization in the frequency domain.
 if equalizer=='ZERO'
     y_fde=y_fft./Heff;
 elseif equalizer == 'MMSE'
@@ -74,7 +72,8 @@ y_ifft=ifft(y_fde);
 %% Remove IDCT
 y_dct=dct(y_ifft);
 %% Remove Subcarrier mapping
-y_sb=y_dct(1:Q:end);
+y_sb=desubmap(y_dct,Submap,FFTsize);
+%y_sb=y_dct(1:Q:end);
 %% Remove DFT
 y_idct=idct(y_sb);
 %% Demodulation
