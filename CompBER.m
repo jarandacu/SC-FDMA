@@ -2,6 +2,7 @@ clear all;
 clc;
 [a1,b1]=DFTSCFDMA('16QAM','AWGN','ZERO',0.35);
 [a2,b2]=DCTSCFDMA('16QAM','AWGN','ZERO',0.35);
+[a2,b2]=DSTSCFDMA('16QAM','AWGN','ZERO',0.35);
 [a3,b3]=WAVSCFDMA('16QAM','haar');
 [a4,b4]=WAVSCFDMA('16QAM','bior1.1');
 h=figure();
