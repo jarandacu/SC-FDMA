@@ -14,10 +14,11 @@ equalizer='ZERO';
 alpha=Alpha; % roll-off factor.
 SNRdb=[0:30];
 SNR=10.^(SNRdb/10); %Rango SNR lineal.
-os=4;
+os=10;
 Fs = 5e6;% Sampling Frequency.
 Ts = 1/Fs;% sampling rate.
 psFilter = RaisedC(Ts, os, alpha);
+TO=1;
 %% Canal
 %Channels based on 3GPP TS 25.104.
 if ch=='pedA'
@@ -46,6 +47,7 @@ x_ifft=ifft(x_sb);
 x_cp=[x_ifft(length(x_ifft)-CP+1:end) x_ifft];
 %% Oversampling
 x_oversampled(1:os:os*(Nsub+CP)) = x_cp;
+x_oversampled=[x_oversampled zeros(1,os-1)]
 %% Filtering
 x_filter = conv(x_oversampled,psFilter,'same');
 %% CHANNEL
@@ -59,11 +61,11 @@ n=(w*d);
 tmpn = randn(2,length(x_ch));
 complexNoise = (tmpn(1,:) + i*tmpn(2,:))/sqrt(2);
 noisePower = 10^(-SNRdb(ii)/10);
-
 r=x_ch+sqrt(noisePower/Q)*complexNoise;
 %% RECEIVER
-%% De-Filtering
-y_filt=r(1:os:os*(Nsub+CP));
+%% De-Filtering with TO
+%y_filt=r(1:os:os*(Nsub+CP));
+y_filt=r(1+TO:os:(os)*(Nsub+CP));
 %% Remove-CP
 y_cp=y_filt(CP+1:end);
 %% Remove IFFT
@@ -84,6 +86,7 @@ end
 y_ifft=ifft(y_fde);
 %% Demodulation
 [y yb]=demodulation2(y_ifft,mod);
+size(find([y.'-x]),1)
 %% Count the errors
 nsErr(ii,kk) = size(find([y.'-x]),1);
 nbErr(ii,kk) = size(find([reshape(yb,1,[])-reshape(xb',1,[])]),2);

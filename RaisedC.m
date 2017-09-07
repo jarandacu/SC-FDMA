@@ -1,8 +1,8 @@
 function[v]=RaisedC(Ts,Nos,alpha)
 T=1;
 Ts=1;
-t1 = [-8*Ts:Ts/Nos:-Ts/Nos];
-t2 = [Ts/Nos:Ts/Nos:8*Ts];
+t1 = [-1*Ts:Ts/Nos:-Ts/Nos];
+t2 = [Ts/Nos:Ts/Nos:1*Ts];
 t = [t1 0 t2];
 for i=1:1:length(t)
     
