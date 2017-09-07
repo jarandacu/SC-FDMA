@@ -1,5 +1,4 @@
-clear all
-clc
+function [SNRdb simBer]=SC_FDMA(Alpha)
 %% DFT-SC-FDMA
 %% Parameters
 W=5e6; %Bandwith
@@ -12,7 +11,7 @@ mod='QPSK'; % modulation.
 Submap='Interleaved'; % subcarrier z|mapping mode.
 ch='AWGN';
 equalizer='ZERO';
-alpha=0.35; % roll-off factor.
+alpha=Alpha; % roll-off factor.
 SNRdb=[0:30];
 SNR=10.^(SNRdb/10); %Rango SNR lineal.
 os=4;
@@ -92,10 +91,10 @@ end
 end
 simBer=(mean(nsErr,2)/FFTsize)';
 bitBer=(mean(nbErr,2)/FFTsize)';
-figure()
-semilogy(SNRdb,simBer,'kx-');
-hold on
-semilogy(SNRdb,bitBer,'rx-');
-legend('SER','BER')
-xlabel('SNR [db]')
-
+%figure()
+%semilogy(SNRdb,simBer,'kx-');
+%hold on
+%semilogy(SNRdb,bitBer,'rx-');
+%legend('SER','BER')
+%xlabel('SNR [db]')
+end
