@@ -10,15 +10,11 @@ db=10^4; % number of data blocks.
 CP=20; % length of cyclic prefix.
 mod='QPSK'; % modulation.
 Submap='Interleaved'; % subcarrier z|mapping mode.
-ch='AWGN';
+ch='vehA';
 equalizer='ZERO';
 alpha=0.35; % roll-off factor.
 SNRdb=[0:30];
 SNR=10.^(SNRdb/10); %Rango SNR lineal.
-os=4;
-Fs = 5e6;% Sampling Frequency.
-Ts = 1/Fs;% sampling rate.
-psFilter = RaisedC(Ts, os, alpha);
 %% Canal
 %Channels based on 3GPP TS 25.104.
 if ch=='pedA'
@@ -44,28 +40,24 @@ x_sb=submap(x_fft,Submap,Nsub);
 x_ifft=ifft(x_sb);
 %% CP
 x_cp=[x_ifft(length(x_ifft)-CP+1:end) x_ifft];
-%% Oversampling
-x_oversampled(1:os:os*(Nsub+CP)) = x_cp;
-%% Filtering
-x_filter = conv(x_oversampled,psFilter,'same');
+
 %% CHANNEL
 
-x_ch=filter(channel, 1,x_filter);  
+x_ch=filter(channel, 1,x_cp);  
 
 w=(1./sqrt(2*SNR(ii)))'; % Energ�a ruido.
 d=(randn(1,Nsub+CP)+j*randn(1,Nsub+CP));
 n=(w*d);
 
-tmpn = randn(2,length(x_ch));
+tmpn = randn(2,Nsub+CP);
 complexNoise = (tmpn(1,:) + i*tmpn(2,:))/sqrt(2);
 noisePower = 10^(-SNRdb(ii)/10);
 
 r=x_ch+sqrt(noisePower/Q)*complexNoise;
 %% RECEIVER
-%% De-Filtering
-y_filt=r(1:os:os*(Nsub+CP));
+
 %% Remove-CP
-y_cp=y_filt(CP+1:end);
+y_cp=r(length(r)+1-Nsub:end);
 %% Remove IFFT
 y_fft=fft(y_cp);
 %% Remove Subcarrier mapping
@@ -84,7 +76,6 @@ end
 y_ifft=ifft(y_fde);
 %% Demodulation
 [y yb]=demodulation2(y_ifft,mod);
-size(find([y.'-x]),1)
 %% Count the errors
 nsErr(ii,kk) = size(find([y.'-x]),1);
 nbErr(ii,kk) = size(find([reshape(yb,1,[])-reshape(xb',1,[])]),2);

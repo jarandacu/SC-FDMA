@@ -2,7 +2,7 @@ clear all;
 clc;
 [a1,b1]=DFTSCFDMA('16QAM','AWGN','ZERO',0.35);
 [a2,b2]=DCTSCFDMA('16QAM','AWGN','ZERO',0.35);
-[a2,b2]=DSTSCFDMA('16QAM','AWGN','ZERO',0.35);
+[a5,b5]=DSTSCFDMA('16QAM','AWGN','ZERO',0.35);
 [a3,b3]=WAVSCFDMA('16QAM','haar');
 [a4,b4]=WAVSCFDMA('16QAM','bior1.1');
 h=figure();
@@ -12,7 +12,7 @@ semilogy(a1,b1,'k--d','LineWidth',2);
 hold on
 semilogy(a2,b2,'b--*','LineWidth',2);
 hold on
-semilogy(a3,b3,'g-s','LineWidth',2);
+semilogy(a5,b5,'g-s','LineWidth',2);
 hold on
 semilogy(a4,b4,'r-.o','LineWidth',2);
 legend('DFT','DCT','HAAR','bior1.1')
